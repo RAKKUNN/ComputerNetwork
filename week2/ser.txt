@@ -1,0 +1,63 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+
+int main()
+{
+    int serv_sock;
+    int clnt_sock;
+
+    //서버 주소와 클라이언트 주소를 저장할 구조체 
+    struct sockaddr_in serv_addr;
+    struct sockaddr_in clnt_addr;
+    socklen_t clnt_addr_size; //클라 주소 크기
+
+    // socket() : System call that creates an endpoint for communication and returns a descriptor
+    // Domain : PF-Protocol Family, AF-Address Family
+    // AF_UNIX : 프로토콜 내부에서
+    // PF_INET : IP 자체를 가리킬 때
+    // AF_INET :  IP 주소 체계를 지칭할 때 (IPv4)
+
+
+    // Type
+    // SOCK_STREAM : TCP
+    // SOCK_DGRAM : UDP
+    // SOCK_RAW : User Defination
+
+    // Protocols
+    // IPPROTO_TCP : TCP
+    // IPPROTO_UDP : UDP
+    serv_sock=socket(PF_INET, SOCK_STREAM, 0);
+    
+    memset(&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family=AF_INET;
+    serv_addr.sin_addr.s_addr=htonl(INADDR_ANY);
+    serv_addr.sin_port=htons(atoi("8080"));
+    
+    bind(serv_sock, (struct sockaddr*) &serv_addr, sizeof(serv_addr));
+    
+    // 연결 요청 가능한 상태로 변경
+    // Params
+    // sockfd : 클라이언트로부터 연결 요청을 받아들이기 위한 소켓파일 디스크립터
+    // backlog : 연결 요청 대기 큐의 크기에 대한 설정
+    // Returns
+    // Success : 0, Fail : 1
+    listen(serv_sock, 5);
+    
+    clnt_addr_size = sizeof(clnt_addr);
+
+    // 연결요청에 대한 수락
+    clnt_sock=accept(serv_sock, (struct sockaddr*)&clnt_addr, &clnt_addr_size);
+    
+    // 메시지 저장
+    char msg[] = "202002546 임우진입니다\n";
+    write(clnt_sock, msg, sizeof(msg));
+    
+    close(clnt_sock);
+    close(serv_sock);
+    
+    return 0;
+}
